@@ -206,7 +206,7 @@ private:
     /*
     side A and side B distinction so we can deal with "crossing" values
     side A and side B will swap depending on which vector we're reducing
-    is_bid is used to decide which way the comparators go
+    is_bid is used to decide which way the comparators go as canonicity is reversed for bids vs asked
     */
     inline void update_side(std::vector<PriceQuantity>& sideA, std::vector<PriceQuantity>& sideB, const PriceQuantity& new_top, bool is_bid)
     {
@@ -229,15 +229,16 @@ private:
             it = sideA.insert(it, new_top);
         }
 
-        // If erase everything before our BEST bid/ask because if the new one is now the best, the previously better ones
+        // If erase everything before our BEST bid/ask because if the new one is now the best, the previously "better" ones
         // Must not be valid anymore or have already been fulfilled
         if (sideA.begin() < it)
             sideA.erase(sideA.begin(), it);
 
+        // Trim the vector size to maintain 20 depth
         while (sideA.size() > 20)
             sideA.pop_back(); // Vector pop_back implementation reduces size, not capacity therefore allocating n + 1 saves time
 
-        // Remove all sideB that are less than or equal to the new bid price
+        // Remove all sideB that are less than or equal to the new bid price this is fixing the "crossover" issue
         sideB.erase(std::remove_if(sideB.begin(), sideB.end(), [new_top, is_bid](const PriceQuantity& ask) {
             return is_bid ? ask.price < new_top.price : ask.price > new_top.price;
             }), sideB.end());
