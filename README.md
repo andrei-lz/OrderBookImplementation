@@ -8,3 +8,5 @@ cd build
 cmake .. -GNinja
 ninja
 ```
+
+Performance is measured to be ~6000 nanoseconds per update_bbo() call.
